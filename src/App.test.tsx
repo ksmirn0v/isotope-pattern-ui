@@ -34,7 +34,7 @@ describe('App', () => {
         expect.objectContaining({ method: 'POST' }),
       )
     })
-    expect(await screen.findByText(/mass/i)).toBeInTheDocument()
+    expect(await screen.findByTestId('isotope-pattern-chart')).toBeInTheDocument()
   })
 
   it('shows an inline error message when the request fails', async () => {
