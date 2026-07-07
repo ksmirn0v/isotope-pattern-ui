@@ -1,0 +1,79 @@
+name: ci-pull-request
+env:
+  NODE_VERSION: "20"
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, edited, synchronize, reopened]
+jobs:
+  validate-pr-title:
+    runs-on: ubuntu-latest
+    outputs:
+      next_version: ${{ steps.compute.outputs.version }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: compute next version from PR title
+        id: compute
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          version=$(.github/scripts/compute-next-version.sh "$PR_TITLE")
+          echo "version=${version}" | tee -a "$GITHUB_OUTPUT"
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: install dependencies
+        run: npm ci
+      - name: lint
+        run: npm run lint
+      - name: build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.TEST_API_BASE_URL }}
+        run: npm run build
+      - name: test
+        run: npm test -- --run
+      - name: saving build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-test
+          path: ./dist
+  deploy-test:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: loading build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-test
+          path: ./dist
+      - name: deploy to Netlify test site
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_TEST_SITE_ID }}
+        run: |
+          deploy_json=$(npx --yes netlify-cli@17 deploy --dir=dist --prod --json)
+          echo "$deploy_json" | jq -r '"deploy_url=" + .deploy_url' | tee -a "$GITHUB_OUTPUT"
+      - name: e2e check against the deployed test site
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
+        run: |
+          status_code=$(curl -s -o /tmp/response.html -w "%{http_code}" "${DEPLOY_URL}")
+          echo "HTTP status: ${status_code}"
+          if [ "$status_code" != "200" ]; then
+            echo "test site did not return 200"
+            exit 1
+          fi
+          grep -q '<div id="root">' /tmp/response.html || (echo "app root element not found in response" && exit 1)
+          echo "e2e check passed"
