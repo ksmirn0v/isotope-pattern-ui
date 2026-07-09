@@ -1,37 +1,42 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ChangeEvent } from 'react'
+
 
 interface FormulaFormProps {
-  onSubmit: (formula: string) => void
-  isSubmitting: boolean
+  onCompute: (formula: string) => void
+  isComputing: boolean
 }
 
-export function FormulaForm({ onSubmit, isSubmitting }: FormulaFormProps) {
+
+export function FormulaForm({ onCompute, isComputing }: FormulaFormProps) {
+
   const [formula, setFormula] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function submitFormula(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const trimmed = formula.trim()
-    if (trimmed.length === 0) {
-      return
-    }
-    onSubmit(trimmed)
+    onCompute(formula)
+    setFormula('')
+  }
+
+  function parseFormula(event: ChangeEvent<HTMLInputElement>) {
+      const formulaTrimmed = event.target.value.toUpperCase().trim()
+      setFormula(formulaTrimmed)
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label htmlFor="formula">Molecular formula</label>
+    <form onSubmit={submitFormula}>
+      <label htmlFor='formula'>Molecular Formula</label>
       <input
-        id="formula"
-        name="formula"
-        type="text"
+        id='formula'
+        name='formula'
+        type='text'
         placeholder="e.g. C2H5OH"
         value={formula}
-        onChange={(event) => setFormula(event.target.value)}
-        disabled={isSubmitting}
+        onChange={parseFormula}
+        disabled={isComputing}
       />
-      <button type="submit" disabled={isSubmitting || formula.trim().length === 0}>
-        {isSubmitting ? 'Computing…' : 'Compute'}
+      <button type='submit' disabled={isComputing || formula.length === 0}>
+        {isComputing ? 'Computing…' : 'Compute'}
       </button>
     </form>
   )

@@ -1,0 +1,58 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Jersey 25", sans-serif;
+}
+
+h1 {
+    text-align: center;
+    margin: 0 0 0.5em 0;
+    font-size: 3em;
+}
+
+label {
+    display: block;
+    text-align: center;
+    font-size: 1.5em;
+    margin: 0 0 0.2em 0;
+}
+
+input {
+    display: block;
+    margin: 0 auto 0.5em auto;
+    min-width: 200px;
+    width: 20%;
+    font-size: 1.5em;
+    font-family: "Jersey 25", sans-serif;
+}
+
+button {
+    display: block;
+    margin: 0 auto;
+    font-size: 1.2em;
+    padding: 0.2em 0.5em;
+}
+
+p {
+    color: brown;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+table {
+    margin: 1em auto 0 auto;
+    border-collapse: collapse;
+    font-size: 1.1em;
+}
+
+th, td {
+    padding: 0.3em 0.8em;
+    text-align: right;
+    border-bottom: 1px solid #ccc;
+}
+
+th:first-child, td:first-child {
+    text-align: left;
+}

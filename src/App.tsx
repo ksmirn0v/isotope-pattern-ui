@@ -4,22 +4,24 @@ import { FormulaForm } from './components/FormulaForm'
 import { IsotopePatternChart } from './components/IsotopePatternChart'
 import type { IsotopeFormula } from './types'
 
-type Status = 'idle' | 'loading' | 'error' | 'success'
+
+type Status = 'idle' | 'computing' | 'error' | 'success'
+
 
 export function App() {
   const [status, setStatus] = useState<Status>('idle')
   const [data, setData] = useState<IsotopeFormula[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit(formula: string) {
-    setStatus('loading')
+  async function computeFormula(formula: string) {
+    setStatus('computing')
     setError(null)
     try {
       const result = await computeIsotopePattern(formula)
       setData(result)
       setStatus('success')
     } catch (err) {
-      setError(err instanceof ComputeError ? err.message : 'Something went wrong. Please try again.')
+      setError(err instanceof ComputeError ? err.message : "Something went wrong. Please try again.")
       setStatus('error')
     }
   }
@@ -27,7 +29,7 @@ export function App() {
   return (
     <main>
       <h1>Isotope Pattern</h1>
-      <FormulaForm onSubmit={handleSubmit} isSubmitting={status === 'loading'} />
+      <FormulaForm onCompute={computeFormula} isComputing={status === 'computing'} />
       {status === 'error' && error && <p role="alert">{error}</p>}
       {status === 'success' && <IsotopePatternChart data={data} />}
     </main>

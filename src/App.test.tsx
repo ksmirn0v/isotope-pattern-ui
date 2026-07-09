@@ -3,7 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 
+
 describe('App', () => {
+
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
   })
@@ -25,8 +27,8 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.type(screen.getByLabelText(/molecular formula/i), 'C2H5OH')
-    await user.click(screen.getByRole('button', { name: /compute/i }))
+    await user.type(screen.getByLabelText('Molecular Formula'), 'C2H5OH')
+    await user.click(screen.getByRole('button', { name: 'Compute' }))
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
@@ -41,15 +43,15 @@ describe('App', () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
       status: 400,
-      json: async () => ({ detail: 'Unknown element: Zz' }),
+      json: async () => ({ detail: 'Unknown error' }),
     } as Response)
 
     const user = userEvent.setup()
     render(<App />)
 
-    await user.type(screen.getByLabelText(/molecular formula/i), 'Zz2')
-    await user.click(screen.getByRole('button', { name: /compute/i }))
+    await user.type(screen.getByLabelText('Molecular Formula'), 'ZZ')
+    await user.click(screen.getByRole('button', { name: 'Compute' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Unknown element: Zz')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Request failed with status')
   })
 })
